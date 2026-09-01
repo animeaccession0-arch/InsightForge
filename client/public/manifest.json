@@ -1,0 +1,66 @@
+{
+  "name": "InsightForge",
+  "short_name": "InsightForge",
+  "description": "Interactive InsightForge analytics workspace for data inspection, predictive vending, heritage QC, academic inbound, language learning, and multi-agent routing.",
+  "start_url": "/InsightForge/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "scope": "/InsightForge/",
+  "icons": [
+    {
+      "src": "/InsightForge/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/InsightForge/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/InsightForge/favicon-192x192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/InsightForge/favicon-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/InsightForge/screenshot-540x720.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/InsightForge/screenshot-1280x720.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "shortcuts": [
+    {
+      "name": "Analytics Dashboard",
+      "short_name": "Dashboard",
+      "description": "Access the InsightForge analytics dashboard",
+      "url": "/InsightForge/?mode=dashboard",
+      "icons": [
+        {
+          "src": "/InsightForge/favicon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
