@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /.next/
+Disallow: /__manus__/
+Disallow: /api/
+
+Sitemap: https://animeaccession0-arch.github.io/InsightForge/sitemap.xml
