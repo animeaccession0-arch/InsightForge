@@ -150,7 +150,41 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+// =============================================================================
+// Performance Optimization Plugin - Compression & Resource Hints
+// =============================================================================
+
+function vitePluginPerformanceOptimization(): Plugin {
+  return {
+    name: "performance-optimization",
+    transformIndexHtml: {
+      order: "post",
+      handler(html) {
+        // Add preconnect hints for external domains
+        const preconnectHints = `
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+        `;
+
+        // Add performance meta tags
+        const performanceMeta = `
+    <meta name="theme-color" content="#000000">
+    <meta name="color-scheme" content="light dark">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        `;
+
+        return html
+          .replace("</head>", `${preconnectHints}${performanceMeta}</head>`)
+          .replace(/type="module"/g, 'type="module" defer');
+      },
+    },
+  };
+}
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginPerformanceOptimization()];
 
 export default defineConfig({
   base: process.env.GITHUB_PAGES === "true" ? "/InsightForge/" : "/",
@@ -161,6 +195,7 @@ export default defineConfig({
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
+    extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
   },
   envDir: path.resolve(import.meta.dirname),
   root: path.resolve(import.meta.dirname, "client"),
@@ -168,6 +203,45 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    minify: "terser",
+    cssCodeSplit: true,
+    sourcemap: process.env.NODE_ENV !== "production",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: [
+            "react",
+            "react-dom",
+            "@tanstack/react-query",
+            "@trpc/client",
+            "@trpc/react-query",
+          ],
+          ui: ["@radix-ui/react-dialog", "@radix-ui/react-select", "recharts"],
+        },
+        entryFileNames: "js/[name]-[hash].js",
+        chunkFileNames: "js/[name]-[hash].js",
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split(".");
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|gif|svg/.test(ext)) {
+            return `images/[name]-[hash][extname]`;
+          } else if (/woff|woff2|ttf|otf|eot/.test(ext)) {
+            return `fonts/[name]-[hash][extname]`;
+          } else if (ext === "css") {
+            return `css/[name]-[hash][extname]`;
+          }
+          return `[name]-[hash][extname]`;
+        },
+      },
+    },
+    terserOptions: {
+      compress: {
+        drop_console: process.env.NODE_ENV === "production",
+        passes: 2,
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+    reportCompressedSize: true,
   },
   server: {
     host: true,
@@ -184,5 +258,21 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    cors: {
+      origin: ["http://localhost:5173", "http://localhost:3000"],
+      credentials: true,
+    },
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    cors: {
+      origin: ["http://localhost:5173", "http://localhost:3000"],
+      credentials: true,
+    },
+  },
+  define: {
+    __DEV__: JSON.stringify(process.env.NODE_ENV !== "production"),
+    __VERSION__: JSON.stringify(process.env.npm_package_version || "1.0.0"),
   },
 });
