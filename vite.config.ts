@@ -1,16 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
-  const isProduction = mode === 'production';
-  const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+  const isGitHubPages = process.env.GITHUB_PAGES === 'true' || mode === 'production';
 
   return {
-    // Base path for GitHub Pages or root for development
     base: isGitHubPages ? '/InsightForge/' : '/',
     
-    plugins: [react()],
+    plugins: [
+      react(),
+      tailwindcss(),
+    ],
     
     resolve: {
       alias: {
@@ -22,13 +24,6 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       assetsDir: 'assets',
       sourcemap: false,
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: isProduction,
-          drop_debugger: isProduction,
-        },
-      },
       rollupOptions: {
         output: {
           manualChunks: {
