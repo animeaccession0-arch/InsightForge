@@ -20,6 +20,9 @@ const LoginPage = () => {
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Advanced Analytics Workspace
           </p>
+          <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+            🔓 Demo Mode Active
+          </p>
         </div>
         
         <div className="mt-8 space-y-4">
@@ -27,19 +30,17 @@ const LoginPage = () => {
             onClick={handleLogin}
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           >
-            {isDemoMode() ? '🚀 Enter Demo Workspace' : '🔐 Login with OAuth'}
+            🚀 Enter Demo Workspace
           </button>
           
-          {isDemoMode() && (
-            <div className="text-center">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                🔓 Demo mode active - all features available with sample data
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                No login required for demo access
-              </p>
-            </div>
-          )}
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              All features available with sample data
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              No login required for demo access
+            </p>
+          </div>
         </div>
 
         <div className="mt-6 text-xs text-center text-gray-400 dark:text-gray-500 border-t dark:border-gray-700 pt-4">
