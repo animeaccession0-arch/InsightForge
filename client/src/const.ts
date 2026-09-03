@@ -1,11 +1,9 @@
-// OAuth Configuration for InsightForge
-// This file handles authentication for both development and GitHub Pages
+// Complete OAuth Configuration with demo mode
 
 const isGitHubPages = window.location.hostname.includes('github.io');
 const basePath = isGitHubPages ? '/InsightForge' : '';
 
 export const OAUTH_CONFIG = {
-  // Auto-detect environment for redirect URI
   getRedirectUri: () => {
     if (isGitHubPages) {
       return 'https://animeaccession0-arch.github.io/InsightForge/auth/callback';
@@ -13,12 +11,10 @@ export const OAUTH_CONFIG = {
     return `${window.location.origin}/auth/callback`;
   },
 
-  // Check if OAuth is configured
   isConfigured: () => {
     return !!(import.meta.env.VITE_OAUTH_PORTAL_URL && import.meta.env.VITE_APP_ID);
   },
 
-  // Get current OAuth settings
   getConfig: () => ({
     portalUrl: import.meta.env.VITE_OAUTH_PORTAL_URL || '',
     appId: import.meta.env.VITE_APP_ID || '',
@@ -26,11 +22,13 @@ export const OAUTH_CONFIG = {
   }),
 };
 
-// Main login function - works with or without OAuth
+// Main login function - always uses demo mode on GitHub Pages
 export function startLogin() {
-  // If on GitHub Pages, use demo mode
+  console.log('🔐 Starting login process...');
+  
+  // Always use demo mode on GitHub Pages
   if (isGitHubPages) {
-    console.log('🔐 Running in demo mode on GitHub Pages');
+    console.log('🔓 Running in demo mode on GitHub Pages');
     sessionStorage.setItem('auth_token', 'demo_token');
     sessionStorage.setItem('user_email', 'demo@insightforge.io');
     window.location.href = `${basePath}/workspace`;
@@ -54,7 +52,7 @@ export function startLogin() {
   window.location.href = authUrl;
 }
 
-// Handle OAuth callback (for when user returns from provider)
+// Handle OAuth callback
 export function handleOAuthCallback() {
   const hashParams = new URLSearchParams(window.location.hash.substring(1));
   const token = hashParams.get('access_token');
@@ -66,7 +64,6 @@ export function handleOAuthCallback() {
     return true;
   }
   
-  // Check for error in URL
   const urlParams = new URLSearchParams(window.location.search);
   const error = urlParams.get('error');
   if (error) {
@@ -91,12 +88,12 @@ export function logout() {
   window.location.href = `${basePath}/`;
 }
 
-// Get auth token for API requests
+// Get auth token
 export function getAuthToken(): string | null {
   return sessionStorage.getItem('auth_token');
 }
 
 // Demo mode check
 export function isDemoMode(): boolean {
-  return isGitHubPages || !OAUTH_CONFIG.isConfigured();
+  return true; // Always true for GitHub Pages
 }
