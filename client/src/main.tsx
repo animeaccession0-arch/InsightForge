@@ -3,14 +3,15 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-// 🔥 GLOBAL FETCH INTERCEPTOR – FORCES ALL API CALLS TO RETURN MOCK DATA
+// 🔥 ULTIMATE FETCH INTERCEPTOR – logs AND blocks ALL requests
 const originalFetch = window.fetch;
 window.fetch = function(input, init) {
   const url = typeof input === 'string' ? input : input.url;
+  console.log('🌐 FETCH REQUEST TO:', url);
 
-  // If the request is to /api or /trpc, return mock JSON immediately
-  if (url.includes('/api') || url.includes('/trpc')) {
-    console.log('🔒 Intercepted fetch to:', url, '→ returning mock data');
+  // BLOCK ALL requests to /api, /trpc, or any non-existent endpoint
+  if (url.includes('/api') || url.includes('/trpc') || url.includes('/InsightForge/api') || url.includes('/InsightForge/trpc')) {
+    console.log('🔒 BLOCKED API CALL → returning mock data');
     return Promise.resolve(new Response(
       JSON.stringify({
         success: true,
@@ -21,7 +22,8 @@ window.fetch = function(input, init) {
     ));
   }
 
-  // Otherwise, use the original fetch
+  // For all other requests, just log and continue
+  console.log('✅ Allowing request to:', url);
   return originalFetch(input, init);
 };
 
