@@ -1,116 +1,102 @@
-import { OAUTH_STATE_COOKIE, encodeOAuthState } from "@shared/const";
+// OAuth Configuration for InsightForge
+// This file handles authentication for both development and GitHub Pages
 
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+const isGitHubPages = window.location.hostname.includes('github.io');
+const basePath = isGitHubPages ? '/InsightForge' : '';
 
-/**
- * OAuth Configuration Type
- */
-interface OAuthConfig {
-  oauthPortalUrl: string;
-  appId: string;
-  redirectUri: string;
-}
+export const OAUTH_CONFIG = {
+  // Auto-detect environment for redirect URI
+  getRedirectUri: () => {
+    if (isGitHubPages) {
+      return 'https://animeaccession0-arch.github.io/InsightForge/auth/callback';
+    }
+    return `${window.location.origin}/auth/callback`;
+  },
 
-/**
- * OAuth State Type
- */
-interface OAuthState {
-  redirectUri: string;
-  nonce: string;
-}
+  // Check if OAuth is configured
+  isConfigured: () => {
+    return !!(import.meta.env.VITE_OAUTH_PORTAL_URL && import.meta.env.VITE_APP_ID);
+  },
 
-/**
- * Validate required OAuth environment variables
- * @throws Error if required environment variables are missing
- */
-const validateOAuthConfig = (): OAuthConfig => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-
-  if (!oauthPortalUrl) {
-    throw new Error(
-      "Missing VITE_OAUTH_PORTAL_URL environment variable. Please check your .env file."
-    );
-  }
-
-  if (!appId) {
-    throw new Error(
-      "Missing VITE_APP_ID environment variable. Please check your .env file."
-    );
-  }
-
-  return {
-    oauthPortalUrl,
-    appId,
-    redirectUri: `${window.location.origin}/api/oauth/callback`,
-  };
+  // Get current OAuth settings
+  getConfig: () => ({
+    portalUrl: import.meta.env.VITE_OAUTH_PORTAL_URL || '',
+    appId: import.meta.env.VITE_APP_ID || '',
+    redirectUri: OAUTH_CONFIG.getRedirectUri(),
+  }),
 };
 
-/**
- * Start the OAuth login. Call this from an event handler or effect at the
- * moment you want to navigate, e.g. `onClick={() => startLogin()}`.
- *
- * It has SIDE EFFECTS — it mints a one-time nonce, writes the __Host- state
- * cookie, and navigates immediately — so the cookie nonce always matches the
- * `state` it sends. Do NOT call it during render (no `href={startLogin()}` /
- * `loginUrl={...}`): each call overwrites the cookie, so a stray render-phase
- * call would desync it from an in-flight login and the callback would reject it
- * with "invalid oauth state". It returns void by design, so there is no URL to
- * stash across renders.
- *
- * @throws Error if OAuth configuration is invalid or environment variables are missing
- */
-export const startLogin = (): void => {
-  try {
-    const config = validateOAuthConfig();
-    const nonce = crypto.randomUUID();
-
-    // Set the OAuth state cookie with security flags
-    document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`;
-
-    // Encode the OAuth state
-    const state = encodeOAuthState({
-      redirectUri: config.redirectUri,
-      nonce,
-    } as OAuthState);
-
-    // Build the OAuth authorization URL
-    const url = new URL(`${config.oauthPortalUrl}/app-auth`);
-    url.searchParams.set("appId", config.appId);
-    url.searchParams.set("redirectUri", config.redirectUri);
-    url.searchParams.set("state", state);
-    url.searchParams.set("type", "signIn");
-
-    // Navigate to the OAuth portal
-    window.location.href = url.toString();
-  } catch (error) {
-    console.error("OAuth login failed:", error);
-    throw error;
+// Main login function - works with or without OAuth
+export function startLogin() {
+  // If on GitHub Pages, use demo mode
+  if (isGitHubPages) {
+    console.log('🔐 Running in demo mode on GitHub Pages');
+    sessionStorage.setItem('auth_token', 'demo_token');
+    sessionStorage.setItem('user_email', 'demo@insightforge.io');
+    window.location.href = `${basePath}/workspace`;
+    return;
   }
-};
 
-/**
- * Check if OAuth is properly configured
- * @returns boolean indicating if all required OAuth config is available
- */
-export const isOAuthConfigured = (): boolean => {
-  try {
-    validateOAuthConfig();
+  // Check if OAuth is properly configured
+  if (!OAUTH_CONFIG.isConfigured()) {
+    console.warn('⚠️ OAuth not configured - using demo mode');
+    sessionStorage.setItem('auth_token', 'demo_token');
+    sessionStorage.setItem('user_email', 'demo@insightforge.io');
+    window.location.href = '/workspace';
+    return;
+  }
+
+  // Full OAuth flow
+  const { portalUrl, appId, redirectUri } = OAUTH_CONFIG.getConfig();
+  const authUrl = `${portalUrl}?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=openid%20profile%20email`;
+  
+  console.log('🔐 Redirecting to OAuth provider...');
+  window.location.href = authUrl;
+}
+
+// Handle OAuth callback (for when user returns from provider)
+export function handleOAuthCallback() {
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const token = hashParams.get('access_token');
+  
+  if (token) {
+    console.log('✅ OAuth successful!');
+    sessionStorage.setItem('auth_token', token);
+    window.location.href = `${basePath}/workspace`;
     return true;
-  } catch {
+  }
+  
+  // Check for error in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  if (error) {
+    console.error('❌ OAuth error:', error);
+    alert(`Authentication failed: ${error}. Please try again.`);
+    window.location.href = `${basePath}/`;
     return false;
   }
-};
+  
+  return false;
+}
 
-/**
- * Get the current OAuth configuration (without navigation side effects)
- * Useful for debugging or conditional rendering
- * @returns OAuthConfig or null if configuration is invalid
- */
-export const getOAuthConfig = (): OAuthConfig | null => {
-  try {
-    return validateOAuthConfig();
-  } catch {
-    return null;
-  }
-};
+// Check if user is authenticated
+export function isAuthenticated(): boolean {
+  return !!sessionStorage.getItem('auth_token');
+}
+
+// Logout function
+export function logout() {
+  sessionStorage.removeItem('auth_token');
+  sessionStorage.removeItem('user_email');
+  window.location.href = `${basePath}/`;
+}
+
+// Get auth token for API requests
+export function getAuthToken(): string | null {
+  return sessionStorage.getItem('auth_token');
+}
+
+// Demo mode check
+export function isDemoMode(): boolean {
+  return isGitHubPages || !OAUTH_CONFIG.isConfigured();
+}
