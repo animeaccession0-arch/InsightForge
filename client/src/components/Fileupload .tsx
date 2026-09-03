@@ -5,14 +5,14 @@ interface FileUploadProps {
   onUploadSuccess?: (data: any) => void;
   onUploadError?: (error: Error) => void;
   accept?: string;
-  maxSize?: number; // in MB
+  maxSize?: number;
 }
 
 export function FileUpload({ 
   onUploadSuccess, 
   onUploadError, 
   accept = ".csv,.json,.jpeg,.jpg,.png",
-  maxSize = 10 // 10MB default
+  maxSize = 10
 }: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -24,12 +24,10 @@ export function FileUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Check file size
       if (selectedFile.size > maxSize * 1024 * 1024) {
         setError(`File size exceeds ${maxSize}MB limit`);
         return;
       }
-      
       setFile(selectedFile);
       setError(null);
       setResult(null);
@@ -44,7 +42,6 @@ export function FileUpload({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       setFile(droppedFile);
@@ -64,7 +61,6 @@ export function FileUpload({
     setError(null);
 
     try {
-      // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setProgress(prev => Math.min(prev + 10, 90));
       }, 200);
@@ -82,7 +78,7 @@ export function FileUpload({
       const errorMessage = err instanceof Error ? err.message : 'Upload failed';
       setError(errorMessage);
       
-      // Use fallback data
+      // Always use fallback
       const fallbackData = {
         success: true,
         message: 'Using demo data (upload simulation)',
@@ -102,9 +98,6 @@ export function FileUpload({
       if (onUploadSuccess) {
         onUploadSuccess(fallbackData);
       }
-      if (onUploadError && err instanceof Error) {
-        onUploadError(err);
-      }
     } finally {
       setUploading(false);
     }
@@ -123,7 +116,6 @@ export function FileUpload({
   return (
     <div className="w-full max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="space-y-6">
-        {/* File drop zone */}
         <div 
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             error 
@@ -174,7 +166,6 @@ export function FileUpload({
           </label>
         </div>
 
-        {/* Action buttons */}
         {file && (
           <div className="flex space-x-3">
             <button
@@ -198,7 +189,6 @@ export function FileUpload({
           </div>
         )}
 
-        {/* Progress bar */}
         {uploading && (
           <div className="w-full">
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
@@ -213,7 +203,6 @@ export function FileUpload({
           </div>
         )}
 
-        {/* Error message */}
         {error && (
           <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
             <p className="text-sm text-red-600 dark:text-red-400 font-medium">⚠️ {error}</p>
@@ -223,18 +212,12 @@ export function FileUpload({
           </div>
         )}
 
-        {/* Result */}
         {result && !uploading && (
           <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium text-green-800 dark:text-green-300">
                 ✅ {result.message || 'Upload successful!'}
               </h4>
-              {result.data && (
-                <span className="text-xs text-green-600 dark:text-green-400">
-                  {new Date().toLocaleTimeString()}
-                </span>
-              )}
             </div>
             
             {result.data && (
@@ -259,25 +242,9 @@ export function FileUpload({
                 </div>
               </div>
             )}
-
-            {result.data?.signals && (
-              <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
-                <p className="text-xs font-medium text-green-700 dark:text-green-300">
-                  📊 Detected signals: {result.data.signals.length}
-                </p>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {result.data.signals.map((signal: any, index: number) => (
-                    <span key={index} className="inline-block px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 rounded-full">
-                      {signal.name}: {signal.value}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
-        {/* Demo mode notice */}
         <div className="text-xs text-center text-gray-400 dark:text-gray-500 border-t dark:border-gray-700 pt-4">
           🔓 Running in demo mode - all analyses use sample data
         </div>
