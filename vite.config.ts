@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
-  const isGitHubPages = process.env.GITHUB_PAGES === 'true' || mode === 'production';
+  const isGitHubPages = mode === 'production' || process.env.GITHUB_PAGES === 'true';
 
   return {
     base: isGitHubPages ? '/InsightForge/' : '/',
