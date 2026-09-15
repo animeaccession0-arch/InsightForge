@@ -3,7 +3,6 @@ import { createTRPCReact } from "@trpc/react-query";
 import { httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "../../server/router";
 
-// Initialize QueryClient with proper defaults
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -14,10 +13,8 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Create TRPC React hook factory
 export const trpc = createTRPCReact<AppRouter>();
 
-// Initialize TRPC client with HTTP batch link
 export const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
