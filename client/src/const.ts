@@ -22,7 +22,6 @@ export const OAUTH_CONFIG = {
   }),
 };
 
-// Main login function - always uses demo mode on GitHub Pages
 export function startLogin() {
   if (typeof window === "undefined") return;
   
@@ -51,7 +50,6 @@ export function startLogin() {
   window.location.href = authUrl;
 }
 
-// Handle OAuth callback
 export function handleOAuthCallback() {
   if (typeof window === "undefined") return false;
   
@@ -77,13 +75,11 @@ export function handleOAuthCallback() {
   return false;
 }
 
-// Check if user is authenticated
 export function isAuthenticated(): boolean {
   if (typeof window === "undefined") return false;
   return !!sessionStorage.getItem('auth_token');
 }
 
-// Logout function
 export function logout() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem('auth_token');
@@ -91,13 +87,11 @@ export function logout() {
   window.location.href = `${basePath}/`;
 }
 
-// Get auth token
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
   return sessionStorage.getItem('auth_token');
 }
 
-// Demo mode check
 export function isDemoMode(): boolean {
   return true;
 }
