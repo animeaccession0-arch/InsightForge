@@ -1,6 +1,6 @@
 // Complete OAuth Configuration with demo mode
 
-const isGitHubPages = window.location.hostname.includes('github.io');
+const isGitHubPages = typeof window !== "undefined" && window.location.hostname.includes('github.io');
 const basePath = isGitHubPages ? '/InsightForge' : '';
 
 export const OAUTH_CONFIG = {
@@ -8,7 +8,7 @@ export const OAUTH_CONFIG = {
     if (isGitHubPages) {
       return 'https://animeaccession0-arch.github.io/InsightForge/auth/callback';
     }
-    return `${window.location.origin}/auth/callback`;
+    return typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : '';
   },
 
   isConfigured: () => {
@@ -24,9 +24,10 @@ export const OAUTH_CONFIG = {
 
 // Main login function - always uses demo mode on GitHub Pages
 export function startLogin() {
+  if (typeof window === "undefined") return;
+  
   console.log('🔐 Starting login process...');
   
-  // Always use demo mode on GitHub Pages
   if (isGitHubPages) {
     console.log('🔓 Running in demo mode on GitHub Pages');
     sessionStorage.setItem('auth_token', 'demo_token');
@@ -35,7 +36,6 @@ export function startLogin() {
     return;
   }
 
-  // Check if OAuth is properly configured
   if (!OAUTH_CONFIG.isConfigured()) {
     console.warn('⚠️ OAuth not configured - using demo mode');
     sessionStorage.setItem('auth_token', 'demo_token');
@@ -44,7 +44,6 @@ export function startLogin() {
     return;
   }
 
-  // Full OAuth flow
   const { portalUrl, appId, redirectUri } = OAUTH_CONFIG.getConfig();
   const authUrl = `${portalUrl}?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=openid%20profile%20email`;
   
@@ -54,6 +53,8 @@ export function startLogin() {
 
 // Handle OAuth callback
 export function handleOAuthCallback() {
+  if (typeof window === "undefined") return false;
+  
   const hashParams = new URLSearchParams(window.location.hash.substring(1));
   const token = hashParams.get('access_token');
   
@@ -78,11 +79,13 @@ export function handleOAuthCallback() {
 
 // Check if user is authenticated
 export function isAuthenticated(): boolean {
+  if (typeof window === "undefined") return false;
   return !!sessionStorage.getItem('auth_token');
 }
 
 // Logout function
 export function logout() {
+  if (typeof window === "undefined") return;
   sessionStorage.removeItem('auth_token');
   sessionStorage.removeItem('user_email');
   window.location.href = `${basePath}/`;
@@ -90,10 +93,11 @@ export function logout() {
 
 // Get auth token
 export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
   return sessionStorage.getItem('auth_token');
 }
 
 // Demo mode check
 export function isDemoMode(): boolean {
-  return true; // Always true for GitHub Pages
+  return true;
 }
